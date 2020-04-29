@@ -3,6 +3,10 @@ package study.datajpa.repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
@@ -163,4 +167,61 @@ class MemberRepositoryTest {
         Optional<Member> optional = memberRepository.findOptionalByUsername("AAA");
         System.out.println("optional = " + optional.get());
     }
+
+    @Test
+    public void paging() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+        // when
+        Page<Member> page = memberRepository.findByAge(age, pageRequest);
+
+        Page<MemberDto> toMap = page.map(member -> new MemberDto(member.getId(), member.getUsername(), null));
+
+        // then
+        List<Member> content = page.getContent();
+
+        assertThat(content.size()).isEqualTo(3);
+        assertThat(page.getTotalElements()).isEqualTo(5);
+        assertThat(page.getNumber()).isEqualTo(0);  // 현재 페이지 번호
+        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+    }
+
+    @Test
+    public void slice() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+        // when
+        Slice<Member> page = memberRepository.findSliceByAge(age, pageRequest);
+        // total count 조회 안함
+        // limit 가 3이 아닌 +1된 4로 조회
+
+        // then
+        List<Member> content = page.getContent();
+
+        assertThat(content.size()).isEqualTo(3);
+//        assertThat(page.getTotalElements()).isEqualTo(5);
+        assertThat(page.getNumber()).isEqualTo(0);  // 현재 페이지 번호
+//        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+    }
+
 }
