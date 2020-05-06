@@ -11,8 +11,6 @@ import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 import study.datajpa.repository.MemberRepository;
 
-import javax.annotation.PostConstruct;
-
 @RestController
 @RequiredArgsConstructor
 public class MemberController {
@@ -35,7 +33,7 @@ public class MemberController {
         return memberRepository.findAll(pageable).map(MemberDto::new);
     }
 
-    @PostConstruct
+//    @PostConstruct
     public void init() {
         for(int i=0; i<100; i++) {
             memberRepository.save(new Member("user" + i, i));
